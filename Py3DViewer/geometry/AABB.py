@@ -3,26 +3,27 @@ import numpy as np
 class AABB:
     
     def __init__(self, vertices):
-        
-        self.vertices = None
-        if(np.array(vertices).shape == (2,3)):
-            self.vertices = np.array(vertices)
-            print(self.vertices)
-        else:
-            print('Wrong number of vertices')
-    
+        self.vertices = vertices
     
     def centre_point(self):
         return (self.vertices[0] + self.vertices[1])*0.5
     
     
-    def contains(self, point):
-        if(point[0] > self.vertices[0][0] and point[0] < self.vertices[1][0] and
-          point[1] > self.vertices[0][1] and point[1] < self.vertices[1][1] and
-          point[2] > self.vertices[0][2] and point[2] < self.vertices[1][2]):
-            return True
+    def contains(self, point, strict):
+        if(strict == True):
+            if(point[0] > self.vertices[0][0] and point[0] < self.vertices[1][0] and
+              point[1] > self.vertices[0][1] and point[1] < self.vertices[1][1] and
+              point[2] > self.vertices[0][2] and point[2] < self.vertices[1][2]):
+                return True
+            else:
+                return False
         else:
-            return False
+            if(point[0] >= self.vertices[0][0] and point[0] <= self.vertices[1][0] and
+              point[1] >= self.vertices[0][1] and point[1] <= self.vertices[1][1] and
+              point[2] >= self.vertices[0][2] and point[2] <= self.vertices[1][2]):
+                return True
+            else:
+                return False
         
         
     def intersect_box(self, aabb):
