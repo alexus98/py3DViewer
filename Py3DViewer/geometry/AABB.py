@@ -16,7 +16,7 @@ class AABB:
     
     
     def contains(self, points, strict=False):
-        points=np.array(points)
+        points=np.array(points).reshape(-1,3)
         
         if(strict):
             x_check =  np.logical_and(points[:,0] > self.min[0], points[:,0] < self.max[0])
