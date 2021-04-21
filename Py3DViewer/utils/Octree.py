@@ -1,11 +1,74 @@
 import numpy as np
 from numba import jit
 from ..geometry import AABB
+from .NOctree import NOctree
+import copy
 
+class Octree:
+    def __init__(self, shapes, max_depth, items_per_leaf):
+        n = NOctree(shapes, max_depth, items_per_leaf)
+        #build(n)
+        
+    def split(nOctree, nOctreeNodeIndex):
+        aabbNode = nOctree.aabb[nOctreeNodeIndex]
+        
+        min = aabbNode.min
+        max = aabbNode.max
+        center = aabbNode.center
+        
+        node = nOctree.nodes[nOctreeNodeIndex]
+        depth = node.depth+1
+        
+        NOctreeNode(nOctreeNodeIndex,depth,None,None)
+        aabb1=AABB(np.array([[min[0], min[1], min[2]], [center[0], center[1], center[2]]]))
+        nOctree.aabbs.append(aabb1)
+        aabb2=AABB(np.array([[center[0], min[1], min[2]], [max[0], center[1], center[2]]]))
+        nOctree.aabbs.append(aabb2)
+        aabb3=AABB(np.array([[center[0], center[1], min[2]], [max[0], max[1], center[2]]]))
+        nOctree.aabbs.append(aabb3)
+        aabb4=AABB(np.array([[min[0], center[1], min[2]], [center[0], max[1], center[2]]]))
+        nOctree.aabbs.append(aabb4)
+        aabb5=AABB(np.array([[min[0], min[1], center[2]], [center[0], center[1], max[2]]]))
+        nOctree.aabbs.append(aabb5)
+        aabb6=AABB(np.array([[center[0], min[1], center[2]], [max[0], center[1], max[2]]]))
+        nOctree.aabbs.append(aabb6)
+        aabb7=AABB(np.array([[center[0], center[1], center[2]], [max[0], max[1], max[2]]]))
+        nOctree.aabbs.append(aabb7)
+        aabb8=AABB(np.array([[min[0], center[1], center[2]], [center[0], max[1], max[2]]]))
+        nOctree.aabbs.append(aabb8)
+        
+        c_index = nOctreeNodeIndex+1
+        
+        for aabb in nOctree.aabbs[nOctreeNodeIndex+1:len(nOctree.aabb)]:
+            i = List()
+            for item in node.items:
+                if(aabb.intersects_box(nOctree.aabbs[item])):
+                    i.append(item)
+                nOctree.nodes.append(NOctreeNode(nOctreeNodeIndex,depth,i,List.empty_list(int64)))
+                node.children.append(c_index)
+                c_index+=1
+
+    def build_octree(nOctree):
+        i=List()
+        for item_idx,it in enumerate(self.root.items):
+            rootAABB = nOctree.aabbs.push(it.aabb)
+            i.append(item_idx)
+        nOctree.aabbs.append(rootAABB)
+        nOctree.nodes.append(NOctreeNode(0,0,i,List.empty_list(int64)))
+        
+        node_idx = 0
+        while node_idx<len(a):
+            if(len(Noctree.nodes[node_idx].items) > nOctree.items_per_leaf and Noctree.nodes[node_idx].depth < nOctree.max_depth):
+                split(nOctree,node_idx)
+            i+=1
+        
+
+        
+"""    
 class OctreeNode:
     def __init__(self, aabb, items, father = None):
         self.aabb = aabb
-        self.father = father
+        self.father = fathter
         self.is_inner = False
         self.children = np.full(8,None)
         if(items is None):
@@ -18,11 +81,10 @@ class OctreeNode:
         min = self.aabb.min
         max = self.aabb.max
         center = self.aabb.center
-        """
         print('min:',min)
         print('max:',max)
         print('centro:',center)
-        """
+        
         
         self.children[0] = OctreeNode(AABB(np.array([[min[0], min[1], min[2]], [center[0], center[1], center[2]]])), None, self)
         self.children[1] = OctreeNode(AABB(np.array([[center[0], min[1], min[2]], [max[0], center[1], center[2]]])), None, self)
@@ -125,4 +187,4 @@ class Octree:
                                     #print('Aggiunto alle foglie for')
                             else:
                                 self.leaves = np.append(self.leaves,child)
-                                #print('Aggiunto alle foglie for')
+                                #print('Aggiunto alle foglie for')"""
