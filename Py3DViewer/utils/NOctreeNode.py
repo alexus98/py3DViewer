@@ -1,18 +1,17 @@
 import numpy as np
 from numba.experimental import jitclass
-from numba.types import int64, ListType, deferred_type
-from numba.typed import List
+from numba.types import int64
 
 spec = [('father', int64),
         ('depth', int64),
-        ('items', ListType(int64)),
-        ('children', ListType(int64))
+        ('items', int64[:]),
+        ('children', int64[:])
        ]
 @jitclass(spec)
 class NOctreeNode:
-    def __init__(self, father, depth, items, children):
+    def __init__(self, father, depth, items):
         self.father=father
         self.depth=depth
         self.items=items
-        self.children=children
+        self.children=np.zeros(8,dtype=int64)
     

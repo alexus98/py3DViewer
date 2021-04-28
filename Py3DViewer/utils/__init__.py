@@ -8,3 +8,5 @@ from .matrices import *
 from .utilities import *
 from .deprecated import *
 from .Octree import *
+from .NOctreeNode import *
+from .NOctree import *

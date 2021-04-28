@@ -1,21 +1,30 @@
 import numpy as np
+from numba import float64
+from numba.experimental import jitclass
 
-class AABB:
-    
-    def __init__(self, vertices=None):
-        if(vertices is not None):
-            self.min = vertices.min(axis=0)
-            self.max = vertices.max(axis=0)
-            self.delta_x = self.max[0]-self.min[0]
-            self.delta_y = self.max[1]-self.min[1]
-            self.delta_z = self.max[2]-self.min[2]
-        else:
-            self.min = None
-            self.max = None
-            self.delta_x = None
-            self.delta_y = None
-            self.delta_z = None
-    
+spec = [('min', float64[:]),
+       ('max', float64[:]),
+       ('delta_x', float64),
+       ('delta_y', float64),
+       ('delta_z', float64)]
+
+@jitclass(spec)
+class AABB(object):
+    def __init__(self, vertices):
+        xmin = vertices[:,0].min()
+        ymin = vertices[:,1].min()
+        zmin = vertices[:,2].min()
+        
+        xmax = vertices[:,0].max()
+        ymax = vertices[:,1].max()
+        zmax = vertices[:,2].max()
+        
+        self.min = np.array([xmin,ymin,zmin],dtype='float64')
+        self.max = np.array([xmax,ymax,zmax],dtype='float64')
+        self.delta_x = self.max[0]-self.min[0]
+        self.delta_y = self.max[1]-self.min[1]
+        self.delta_z = self.max[2]-self.min[2]
+        
     @property
     def center(self):
         return (self.min + self.max)*0.5

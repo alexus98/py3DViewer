@@ -1,17 +1,14 @@
 import numpy as np
-import numba
 from numba.experimental import jitclass
-from numba.types import int64, ListType, deferred_type
-
+from numba.types import int64, ListType
 from numba.typed import List
+from numba import jit
 from ..geometry.AABB import AABB
 from ..geometry.SpaceObject import SpaceObject
 from .NOctreeNode import NOctreeNode
-
+import time
 
 aabb_type = AABB.class_type.instance_type
-
-space_object_type = SpaceObject.class_type.instance_type
 
 space_object_type = SpaceObject.class_type.instance_type
 
@@ -20,17 +17,25 @@ noctreenode_type = NOctreeNode.class_type.instance_type
 spec = [('items_per_leaf', int64),
         ('max_depth', int64),
         ('aabbs', ListType(aabb_type)),
-        #('shapes', ListType(space_object_type)),
+        ('shapes', ListType(space_object_type)),
+        ('aabb_shapes', ListType(aabb_type)),
         ('nodes', ListType(noctreenode_type)),
         ('depth', int64)]
 
+@jit
+def get_aabbs(shapes):
+    aabbs = List()
+    for s in shapes:
+        aabbs.append(AABB(s.vertices))
+    return aabbs
+
 @jitclass(spec)
 class NOctree:
-    def __init__(self,items_per_leaf,max_depth,shapes):
-        self.items_per_leaf = 1
-        self.max_depth = 1
+    def __init__(self,items_per_leaf, max_depth, shapes):
+        self.items_per_leaf = items_per_leaf
+        self.max_depth = max_depth
         self.aabbs = List.empty_list(aabb_type)
-        #self.shapes = shapes
+        self.shapes = shapes
+        self.aabb_shapes = get_aabbs(self.shapes)
         self.nodes = List.empty_list(noctreenode_type)
         self.depth = 0
-        
