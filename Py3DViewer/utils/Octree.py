@@ -18,9 +18,9 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex):
     depth = node.depth+1
     children_index_queue = len(nOctree.aabbs)
     
-    print('--- Split ',nOctreeNodeIndex,' ---')
-    print('FATHER MIN',min,'FATHER MAX',max)
-    print('Depth: ', depth)
+    #print('--- Split ',nOctreeNodeIndex,' ---')
+    #print('FATHER MIN',min,'FATHER MAX',max)
+    #print('Depth: ', depth)
     #print('ITEMS:',node.items)
     
     aabb1=AABB(np.array([[min[0], min[1], min[2]], [center[0], center[1], center[2]]]))
@@ -44,38 +44,38 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex):
     children_index = 0
     for aabb in nOctree.aabbs[children_index_queue:len(nOctree.aabbs)]:
         
-        print('Index assigning: ',children_index_queue)
+        #print('Index assigning: ',children_index_queue)
         
         i=np.empty(0,dtype='int64')
         for item in node.items:
             
-            print('MIN CHILDREN:',aabb.min,'MAX CHILDREN:',aabb.max)
-            print('ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
+            #print('MIN CHILDREN:',aabb.min,'MAX CHILDREN:',aabb.max)
+            #print('ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
             
             if(aabb.intersects_box(nOctree.aabb_shapes[item])):
-                print('APPEND ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
+                #print('APPEND ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
                 i = np.append(i,item)
-            else:
-                print('NO ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
+            #else:
+                #print('NO ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
 
         nOctree.nodes.append(NOctreeNode(nOctreeNodeIndex,depth,i))
         
         #print('PROFONDITA',nOctree.nodes[children_index_queue].depth)
         #print('ITEM',i)
-        
         nOctree.nodes[nOctreeNodeIndex].children[children_index]=children_index_queue
         
-        print('Items: ',nOctree.nodes[children_index_queue].items,'Depth: ',nOctree.nodes[children_index_queue].depth)
+        #print('Items: ',nOctree.nodes[children_index_queue].items,'Depth: ',nOctree.nodes[children_index_queue].depth)
         if(len(nOctree.nodes[children_index_queue].items) > nOctree.items_per_leaf
            and
            nOctree.nodes[children_index_queue].depth < nOctree.max_depth):
-            print('SPLITTING ',children_index_queue)
+            #print('SPLITTING ',children_index_queue)
             nodes_to_split.append(children_index_queue)
         
         children_index_queue += 1
         children_index += 1
         
 
+    nOctree.nodes[nOctreeNodeIndex].items = np.empty(0,dtype='int64')
     #print(nOctree.nodes[nOctreeNodeIndex+1].children)
         
 @njit
