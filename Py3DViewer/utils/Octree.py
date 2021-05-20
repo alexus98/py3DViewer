@@ -4,8 +4,6 @@ from ..geometry import AABB
 from .NOctree import NOctree
 from .NOctreeNode import NOctreeNode
 from numba.typed import List
-from numba import jit
-import copy
 
 @njit
 def split(nOctree, nodes_to_split, nOctreeNodeIndex):
@@ -80,15 +78,17 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex):
         
 @njit
 def build_octree(nOctree):
-    i=np.empty(0,dtype='int64')
+    #i=np.empty(0,dtype='int64')
     
+    i = np.array(list(range(0,len(nOctree.shapes))))
+    nOctree.aabbs.append(AABB(nOctree.vertices))
     
-    nOctree.aabbs.append(AABB(nOctree.shapes[0].vertices))
-    i = np.append(i,0)
-
-    for item_idx,aabb in enumerate(nOctree.aabb_shapes[1:]):
-        nOctree.aabbs[0].push_aabb(aabb)
-        i = np.append(i,item_idx+1)
+    #nOctree.aabbs.append(AABB(nOctree.shapes[0].vertices))
+    #i = np.append(i,0)
+    
+    #for item_idx,aabb in enumerate(nOctree.aabb_shapes[1:]):
+    #    nOctree.aabbs[0].push_aabb(aabb)
+    #    i = np.append(i,item_idx+1)
     
     nOctree.nodes.append(NOctreeNode(0,0,i))
     
@@ -101,6 +101,6 @@ def build_octree(nOctree):
             split(nOctree, nodes_to_split, node_idx)
 
 class Octree:
-    def __init__(self, items_per_leaf, max_depth, shapes):
-        self.n = NOctree(items_per_leaf, max_depth, shapes)
+    def __init__(self, items_per_leaf, max_depth, shapes, vertices):
+        self.n = NOctree(items_per_leaf, max_depth, shapes, vertices)
         build_octree(self.n)
