@@ -4,10 +4,6 @@ from numba.experimental import jitclass
 from numba.typed import List
 from numba import njit
 
-
-
-
-
 spec = [('min', float64[:]),
        ('max', float64[:]),
        ('delta_x', float64),

@@ -99,8 +99,65 @@ def build_octree(nOctree):
         node_idx = nodes_to_split.pop(0)
         if(len(nOctree.nodes[node_idx].items) > nOctree.items_per_leaf and nOctree.nodes[node_idx].depth < nOctree.max_depth):
             split(nOctree, nodes_to_split, node_idx)
-
+"""            
+@njit            
+def search_p(nodes,shapes,aabbs,point,index=0):
+        
+        aabb = aabbs[index]
+        
+        if (point[0] < aabb.min[0]
+            or point[0] > aabb.max[0]
+            or point[1] < aabb.min[1]
+            or point[1] > aabb.max[1]
+            or point[2] < aabb.min[2]
+            or point[2] > aabb.max[2]):
+                print('Fuori dall aabb')
+                return False,-1
+        
+        if point[0] <= aabb.center[0]:
+            if point[1] <= aabb.center[1]:
+                if point[2] <= aabb.center[2]:
+                    inner_child_index = 0 #left_back_bottom
+                else:
+                    inner_child_index = 4 #left_front_bottom
+            
+            else:
+                if point[2] <= aabb.center[2]:
+                    inner_child_index = 3 #left_back_top
+                else:
+                    inner_child_index = 7 #left_front_top
+        else:
+            if point[1] <= aabb.center[1]:
+                if point[2] <= aabb.center[2]:
+                    inner_child_index = 1 #right_back_bottom
+                else:
+                    inner_child_index = 5 #right_front_bottom
+            else:
+                if point[2] <= aabb.center[2]:
+                    inner_child_index = 2 #right_back_top
+                else:
+                    inner_child_index = 6 #right_front_top
+                    
+        nodes_child_index = nodes[index].children[inner_child_index]
+        
+        if len(nodes[nodes_child_index].items) == 0 and not np.array_equal(nodes[nodes_child_index].children, np.zeros(8)):
+            return search_p(nodes, shapes, aabbs, point, nodes_child_index)
+        else:
+            print(nodes_child_index)
+            for i in nodes[nodes_child_index].items:
+                if shapes[i].triangle_contains_point(point):
+                    return True,i
+                
+            print('Dentro l aabb')
+            return False,-1            
+"""
 class Octree:
     def __init__(self, items_per_leaf, max_depth, shapes, vertices):
         self.n = NOctree(items_per_leaf, max_depth, shapes, vertices)
         build_octree(self.n)
+        
+        
+        
+        
+    def search_point(self,point):
+        return search_p(self.n.nodes,self.n.shapes,self.n.aabbs,point,index=0)

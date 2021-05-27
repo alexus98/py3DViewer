@@ -1,8 +1,13 @@
 import numpy as np
 from .AABB import AABB
-from numba import float64,jit
+from numba import float64,njit,jit
 from numba.experimental import jitclass
 import math
+
+@njit
+def distance_between_points(p1,p2):
+        d = math.sqrt(pow((p2[0] - p1[0]),2) + pow((p2[1] - p1[1]),2) + pow((p2[2] - p1[2]),2))
+        return d
 
 spec = [('vertices', float64[:,:])]
 
@@ -11,7 +16,25 @@ class SpaceObject:
     def __init__(self, vertices):
         self.vertices = vertices
 
-    def magnitude_triangle(self,a,b,c):
+    @staticmethod
+    def closest_point(vert,p):
+        d = np.zeros(len(vert))
+        m = p
+        i=0
+        for v in vert:
+            d[i] = distance_between_points(vert[p],v)
+            if m != p and i!=p:        
+
+                if d[i] < d[m]:
+                    m = i
+            elif m == p and i!=p:
+                m = i
+            i=i+1
+        return m
+    
+    
+    @staticmethod
+    def magnitude_triangle(a,b,c):
         mag = 0
         ab = b-a
         ac = c-a
@@ -20,7 +43,6 @@ class SpaceObject:
             mag=mag+pow(element, 2)
         mag=math.sqrt(mag)
         return mag    
-        
         
     def triangle_contains_point(self, point):
         if len(self.vertices) == 3:
@@ -40,6 +62,35 @@ class SpaceObject:
                     return False
             else:
                 print('Due o piu vertici sono nella stessa posizione')
-            
-            
-    
+
+
+    def quad_contains_point(self):# point):
+        if len(self.vertices) == 4:
+            a = self.vertices[0]
+            b = self.vertices[1]
+            c = self.vertices[2]
+            d = self.vertices[3]
+
+            if (not np.array_equal(a,b)
+                and not np.array_equal(a,c)
+                and not np.array_equal(a,d)
+                and not np.array_equal(b,c)
+                and not np.array_equal(b,d)
+                and not np.array_equal(c,d)):
+                
+                v=[a,b,c,d]
+                closest=self.closest_point(self.vertices,0)
+                v=v[1:]
+                v=v[:closest-1] + v[closest:]
+
+                """
+                print(self.vertices[0].dtype)
+                x2=np.array([4,5,6])
+                x3=np.array([7,8,9])
+                x4=[x1,x2,x3]
+                v1=np.array(x4)
+                tri1 = SpaceObject(np.array([a,self.vertices[closest],v[0]]))
+                tri2 = SpaceObject(np.array([a,self.vertices[closest],v[1]]))
+                return np.logical_or(tri1.triangle_contains_point(point),tri2.triangle_contains_point(point))"""
+            else:
+                print('Due o piu vertici sono nella stessa posizione')
