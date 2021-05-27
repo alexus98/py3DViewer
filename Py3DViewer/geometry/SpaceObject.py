@@ -84,13 +84,11 @@ class SpaceObject:
                 v=v[:closest-1] + v[closest:]
 
                 """
-                print(self.vertices[0].dtype)
-                x2=np.array([4,5,6])
-                x3=np.array([7,8,9])
-                x4=[x1,x2,x3]
-                v1=np.array(x4)
+                x1=np.array([a,self.vertices[closest],v[0]])
+                x2=np.array([a,self.vertices[closest],v[1]])
                 tri1 = SpaceObject(np.array([a,self.vertices[closest],v[0]]))
                 tri2 = SpaceObject(np.array([a,self.vertices[closest],v[1]]))
-                return np.logical_or(tri1.triangle_contains_point(point),tri2.triangle_contains_point(point))"""
+                return np.logical_or(tri1.triangle_contains_point(point),tri2.triangle_contains_point(point))
+                """
             else:
                 print('Due o piu vertici sono nella stessa posizione')
