@@ -23,8 +23,7 @@ class SpaceObject:
         i=0
         for v in vert:
             d[i] = distance_between_points(vert[p],v)
-            if m != p and i!=p:        
-
+            if m != p and i!=p:
                 if d[i] < d[m]:
                     m = i
             elif m == p and i!=p:
@@ -84,10 +83,10 @@ class SpaceObject:
                 v=v[:closest-1] + v[closest:]
 
                 """
-                x1=np.array([a,self.vertices[closest],v[0]])
-                x2=np.array([a,self.vertices[closest],v[1]])
-                tri1 = SpaceObject(np.array([a,self.vertices[closest],v[0]]))
-                tri2 = SpaceObject(np.array([a,self.vertices[closest],v[1]]))
+                v1=np.array([a,self.vertices[closest],v[0]])
+                v2=np.array([a,self.vertices[closest],v[1]])
+                tri1 = SpaceObject(v1)
+                tri2 = SpaceObject(v2)
                 return np.logical_or(tri1.triangle_contains_point(point),tri2.triangle_contains_point(point))
                 """
             else:
