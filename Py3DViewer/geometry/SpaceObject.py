@@ -16,6 +16,7 @@ class SpaceObject:
     def __init__(self, vertices):
         self.vertices = vertices
 
+        
     @staticmethod
     def closest_point(vert,p):
         d = np.zeros(len(vert))
@@ -43,12 +44,23 @@ class SpaceObject:
         mag=math.sqrt(mag)
         return mag    
         
+        
+    def all_vertices_are_different(self):
+        for i,v in enumerate(self.vertices):
+            for vert in self.vertices[i+1:]:
+                if np.array_equal(vert,v):
+                    return False
+        return True
+    
+    
     def triangle_contains_point(self, point):
         if len(self.vertices) == 3:
-            a = self.vertices[0]
-            b = self.vertices[1]
-            c = self.vertices[2]
-            if (not np.array_equal(a,b) and not np.array_equal(a,c) and not np.array_equal(b,c)):
+            #if (not np.array_equal(a,b) and not np.array_equal(a,c) and not np.array_equal(b,c)):
+            if self.all_vertices_are_different():
+                a = self.vertices[0]
+                b = self.vertices[1]
+                c = self.vertices[2]
+
                 area_triangolo = self.magnitude_triangle(a,b,c)/2
                 
                 alfa = self.magnitude_triangle(point,b,c)/(2*area_triangolo)
@@ -61,33 +73,158 @@ class SpaceObject:
                     return False
             else:
                 print('Due o piu vertici sono nella stessa posizione')
-
-
-    def quad_contains_point(self):# point):
+                
+                
+    def quad_contains_point(self, point):
+        if len(self.vertices) == 4:
+            #if (not np.array_equal(a,b)
+            #    and not np.array_equal(a,c)
+            #    and not np.array_equal(a,d)
+            #    and not np.array_equal(b,c)
+            #    and not np.array_equal(b,d)
+            #    and not np.array_equal(c,d)):
+            if self.all_vertices_are_different():
+                
+                a = self.vertices[0]
+                b = self.vertices[1]
+                c = self.vertices[2]
+                d = self.vertices[3]
+                
+                v1=np.zeros((3,3),dtype='float64')
+                v1[0]=a
+                v1[1]=b
+                v1[2]=d
+                
+                v2=np.zeros((3,3),dtype='float64')
+                v2[0]=b
+                v2[1]=c
+                v2[2]=d
+                
+                tmp = self.vertices
+                self.vertices=v1
+                tri1 = self.triangle_contains_point(point)
+                self.vertices=v2
+                tri2 = self.triangle_contains_point(point)
+                self.vertices = tmp
+                
+                return (tri1 or tri2)
+            else:
+                print('Due o piu vertici sono nella stessa posizione')
+                
+                
+    def tet_contains_point(self, point):
         if len(self.vertices) == 4:
             a = self.vertices[0]
             b = self.vertices[1]
             c = self.vertices[2]
             d = self.vertices[3]
 
-            if (not np.array_equal(a,b)
-                and not np.array_equal(a,c)
-                and not np.array_equal(a,d)
-                and not np.array_equal(b,c)
-                and not np.array_equal(b,d)
-                and not np.array_equal(c,d)):
+            if self.all_vertices_are_different():
                 
-                v=[a,b,c,d]
-                closest=self.closest_point(self.vertices,0)
-                v=v[1:]
-                v=v[:closest-1] + v[closest:]
-
-                """
-                v1=np.array([a,self.vertices[closest],v[0]])
-                v2=np.array([a,self.vertices[closest],v[1]])
-                tri1 = SpaceObject(v1)
-                tri2 = SpaceObject(v2)
-                return np.logical_or(tri1.triangle_contains_point(point),tri2.triangle_contains_point(point))
-                """
+            #if (not np.array_equal(a,b)
+            #    and not np.array_equal(a,c)
+            #    and not np.array_equal(a,d)
+            #    and not np.array_equal(b,c)
+            #    and not np.array_equal(b,d)
+            #    and not np.array_equal(c,d)):
+            
+                v1=np.zeros((3,3),dtype='float64')
+                v1[0]=a
+                v1[1]=b
+                v1[2]=c
+                
+                v2=np.zeros((3,3),dtype='float64')
+                v2[0]=a
+                v2[1]=b
+                v2[2]=d
+                
+                v3=np.zeros((3,3),dtype='float64')
+                v3[0]=a
+                v3[1]=c
+                v3[2]=d
+                
+                v4=np.zeros((3,3),dtype='float64')
+                v4[0]=c
+                v4[1]=b
+                v4[2]=d
+                
+                tmp = self.vertices
+                self.vertices=v1
+                tri1 = self.triangle_contains_point(point)
+                self.vertices=v2
+                tri2 = self.triangle_contains_point(point)
+                self.vertices=v3
+                tri3 = self.triangle_contains_point(point)
+                self.vertices=v4
+                tri4 = self.triangle_contains_point(point)
+                self.vertices = tmp
+                
+                return (tri1 or tri2 or tri3 or tri4)
+            else:
+                print('Due o piu vertici sono nella stessa posizione')
+            
+    def hex_contains_point(self, point):
+        if len(self.vertices) == 8:
+            if self.all_vertices_are_different():
+                a = self.vertices[0]
+                b = self.vertices[1]
+                c = self.vertices[2]
+                d = self.vertices[3]
+                e = self.vertices[4]
+                f = self.vertices[5]
+                g = self.vertices[6]
+                h = self.vertices[7]
+                
+                v1=np.zeros((4,3),dtype='float64')
+                v1[0]=a
+                v1[1]=b
+                v1[2]=c
+                v1[3]=d
+                
+                v2=np.zeros((4,3),dtype='float64')
+                v2[0]=e
+                v2[1]=f
+                v2[2]=g
+                v2[3]=h
+                
+                v3=np.zeros((4,3),dtype='float64')
+                v3[0]=a
+                v3[1]=b
+                v3[2]=e
+                v3[3]=f
+                
+                v4=np.zeros((4,3),dtype='float64')
+                v4[0]=c
+                v4[1]=d
+                v4[2]=g
+                v4[3]=h
+                
+                v5=np.zeros((4,3),dtype='float64')
+                v5[0]=a
+                v5[1]=e
+                v5[2]=d
+                v5[3]=h
+                
+                v6=np.zeros((4,3),dtype='float64')
+                v6[0]=b
+                v6[1]=f
+                v6[2]=c
+                v6[3]=g
+                
+                tmp = self.vertices
+                self.vertices=v1
+                quad1 = self.quad_contains_point(point)
+                self.vertices=v2
+                quad2 = self.quad_contains_point(point)
+                self.vertices=v3
+                quad3 = self.quad_contains_point(point)
+                self.vertices=v4
+                quad4 = self.quad_contains_point(point)
+                self.vertices=v5
+                quad5 = self.quad_contains_point(point)
+                self.vertices=v6
+                quad6 = self.quad_contains_point(point)
+                
+                return (quad1 or quad2 or quad3 or quad4 or quad5 or quad6)
             else:
                 print('Due o piu vertici sono nella stessa posizione')

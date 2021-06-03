@@ -4,6 +4,7 @@ from ..geometry import AABB
 from .NOctree import NOctree
 from .NOctreeNode import NOctreeNode
 from numba.typed import List
+from ..structures import Trimesh, Quadmesh, Tetmesh, Hexmesh
 
 @njit
 def split(nOctree, nodes_to_split, nOctreeNodeIndex):
@@ -99,9 +100,9 @@ def build_octree(nOctree):
         node_idx = nodes_to_split.pop(0)
         if(len(nOctree.nodes[node_idx].items) > nOctree.items_per_leaf and nOctree.nodes[node_idx].depth < nOctree.max_depth):
             split(nOctree, nodes_to_split, node_idx)
-"""            
+
 @njit            
-def search_p(nodes,shapes,aabbs,point,index=0):
+def search_p(nodes,shapes,aabbs,point,type_mesh,index=0):
         
         aabb = aabbs[index]
         
@@ -139,25 +140,36 @@ def search_p(nodes,shapes,aabbs,point,index=0):
                     inner_child_index = 6 #right_front_top
                     
         nodes_child_index = nodes[index].children[inner_child_index]
-        
         if len(nodes[nodes_child_index].items) == 0 and not np.array_equal(nodes[nodes_child_index].children, np.zeros(8)):
-            return search_p(nodes, shapes, aabbs, point, nodes_child_index)
+            return search_p(nodes, shapes, aabbs, point,type_mesh,nodes_child_index)
         else:
-            print(nodes_child_index)
-            for i in nodes[nodes_child_index].items:
-                if shapes[i].triangle_contains_point(point):
-                    return True,i
+            if type_mesh == 'Trimesh':
+                print('Prova')
+                for i in nodes[nodes_child_index].items:
+                    if shapes[i].triangle_contains_point(point):
+                        return True,i
+            
+            elif type_mesh == 'Quadmesh':
+                for i in nodes[nodes_child_index].items:
+                    if shapes[i].quad_contains_point(point):
+                        return True,i
+                    
+            elif type_mesh == 'Hexmesh':
+                for i in nodes[nodes_child_index].items:
+                    if shapes[i].hex_contains_point(point):
+                        return True,i
+                    
+            elif type_mesh == 'Tetmesh':
+                for i in nodes[nodes_child_index].items:
+                    if shapes[i].tet_contains_point(point):
+                        return True,i
                 
             print('Dentro l aabb')
-            return False,-1            
-"""
+            return False,-1   
 class Octree:
     def __init__(self, items_per_leaf, max_depth, shapes, vertices):
         self.n = NOctree(items_per_leaf, max_depth, shapes, vertices)
         build_octree(self.n)
         
-        
-        
-        
-    def search_point(self,point):
-        return search_p(self.n.nodes,self.n.shapes,self.n.aabbs,point,index=0)
+    def search_point(self,type_mesh,point):
+        return search_p(self.n.nodes,self.n.shapes,self.n.aabbs,point,type_mesh,index=0)
