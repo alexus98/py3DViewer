@@ -179,7 +179,7 @@ def search_p(nodes,shapes,aabbs,point,type_mesh,index=0):
 
 @njit
 def intersects_ray(nodes, shapes, aabbs, r_origin, r_dir, type_mesh):
-    shapes_hit = List()
+    shapes_hit = set()
     
     if(not aabbs[0].intersects_ray(r_origin, r_dir)):
         return False, shapes_hit
@@ -200,7 +200,7 @@ def intersects_ray(nodes, shapes, aabbs, r_origin, r_dir, type_mesh):
                     else:
                         for i in child.items:
                             if(shapes[i].ray_interesects_triangle(r_origin, r_dir)):
-                                shapes_hit.append(i)
+                                shapes_hit.add(i)
     if(len(shapes_hit) == 0):
         return False,shapes_hit
     return True,shapes_hit

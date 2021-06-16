@@ -55,7 +55,6 @@ class SpaceObject:
     
     def triangle_contains_point(self, point):
         if len(self.vertices) == 3:
-            #if (not np.array_equal(a,b) and not np.array_equal(a,c) and not np.array_equal(b,c)):
             if self.all_vertices_are_different():
                 a = self.vertices[0]
                 b = self.vertices[1]
@@ -77,12 +76,6 @@ class SpaceObject:
                 
     def quad_contains_point(self, point):
         if len(self.vertices) == 4:
-            #if (not np.array_equal(a,b)
-            #    and not np.array_equal(a,c)
-            #    and not np.array_equal(a,d)
-            #    and not np.array_equal(b,c)
-            #    and not np.array_equal(b,d)
-            #    and not np.array_equal(c,d)):
             if self.all_vertices_are_different():
                 
                 a = self.vertices[0]

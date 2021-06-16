@@ -117,9 +117,6 @@ class AABB(object):
             vertices.append(v)
             edges.append(e)
             i=i+8
-
-            #vertices=np.vstack(vertices)
-            #e=np.array(edges)
         return vertices,edges
     
     def intersects_ray(self, r_origin, r_dir):
@@ -127,71 +124,49 @@ class AABB(object):
         tmax=math.inf
         
         if(abs(r_dir[0]) < 1e-15):
-            print('If 0')
             if(r_origin[0] < self.min[0] or r_origin[0] > self.max[0]):
-                print('False 0')
                 return False
         else:
-            print('Else 0')
             tmin = (self.min[0] - r_origin[0]) / r_dir[0] 
             tmax = (self.max[0] - r_origin[0]) / r_dir[0]
         
             if tmin > tmax:
-                print('Swap 0')
                 temp=tmin
                 tmin=tmax
                 tmax=temp
             
         if(abs(r_dir[1]) < 1e-15):
-            print('If 1')
             if(r_origin[1]<self.min[1] or r_origin[1]>self.max[1]):
-                print('False 1')
                 return False    
         else:
-            print('Else 1')
             tymin = (self.min[1] - r_origin[1]) / r_dir[1] 
             tymax = (self.max[1] - r_origin[1]) / r_dir[1]
         
             if tymin > tymax:
-                print('Swap 1')
                 temp = tymin
                 tymin = tymax
                 tymax = temp
             
             if tmin > tymax or tymin > tmax: 
-                print('False 2')
                 return False
         
         
             tmin = max(tymin,tmin)
             tmax = min(tymax,tmax)
-            """
-            if tymin > tmin: 
-                tmin = tymin 
-            
-            if tymax < tmax:
-                tmax = tymax
-            """
         
         if(abs(r_dir[2]) < 1e-15):
-            print('If 2')
             if(r_origin[2]<self.min[2] or r_origin[2]>self.max[2]):
-                print('False 3')
                 return False    
         else:
-            print('Else 0')
             tzmin = (self.min[2] - r_origin[2]) / r_dir[2] 
             tzmax = (self.max[2] - r_origin[2]) / r_dir[2]
         
             if tzmin > tzmax:
-                print('Swap 2')
                 temp = tzmin
                 tzmin = tzmax
                 tzmax = temp
         
-            print(tmin,tmax,tzmax,tzmin)
             if tmin > tzmax or tzmin > tmax:
-                print('False 4')
                 return False
         
             tmin = max(tzmin,tmin)
