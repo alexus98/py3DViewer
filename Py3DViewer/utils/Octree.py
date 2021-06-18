@@ -7,7 +7,7 @@ from numba.typed import List
 from ..structures import Trimesh, Quadmesh, Tetmesh, Hexmesh
 
 @njit
-def split(nOctree, nodes_to_split, nOctreeNodeIndex, leaves):
+def split(nOctree, nodes_to_split, nOctreeNodeIndex):
     aabbNode = nOctree.aabbs[nOctreeNodeIndex]
 
     min = aabbNode.min
@@ -16,11 +16,6 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex, leaves):
     node = nOctree.nodes[nOctreeNodeIndex]
     depth = node.depth+1
     children_index_queue = len(nOctree.aabbs)
-    
-    #print('--- Split ',nOctreeNodeIndex,' ---')
-    #print('FATHER MIN',min,'FATHER MAX',max)
-    #print('Depth: ', depth)
-    #print('ITEMS:',node.items)
     
     aabb1=AABB(np.array([[min[0], min[1], min[2]], [center[0], center[1], center[2]]]))
     nOctree.aabbs.append(aabb1)
@@ -43,61 +38,29 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex, leaves):
     children_index = 0
 
     for aabb in nOctree.aabbs[children_index_queue:len(nOctree.aabbs)]:
-        #print('Index assigning: ',children_index_queue)
-        #print('MIN CHILDREN:',aabb.min,'MAX CHILDREN:',aabb.max)
 
         i=np.empty(0,dtype='int64')
         for item in node.items:
-            
-            #print('MIN CHILDREN:',aabb.min,'MAX CHILDREN:',aabb.max)
-            #print('ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
-            
             if(aabb.intersects_box(nOctree.aabb_shapes[item])):
-                #print('APPEND ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
                 i = np.append(i,item)
-            #else:
-                #print('NO ITEM', item ,'MIN: ',nOctree.aabb_shapes[item].min, 'ITEM MAX: ',nOctree.aabb_shapes[item].max)
-
+                
         nOctree.nodes.append(NOctreeNode(nOctreeNodeIndex,depth,i))
-        
-        #print('PROFONDITA',nOctree.nodes[children_index_queue].depth)
-        #print('ITEM',len(i))
         nOctree.nodes[nOctreeNodeIndex].children[children_index]=children_index_queue
         
-        #print('Items: ',nOctree.nodes[children_index_queue].items,'Depth: ',nOctree.nodes[children_index_queue].depth)
         if(len(nOctree.nodes[children_index_queue].items) > nOctree.items_per_leaf
            and
            nOctree.nodes[children_index_queue].depth < nOctree.max_depth):
-            #print('SPLITTING ',children_index_queue)
-            #print('Depth',nOctree.nodes[children_index_queue].depth,'Items',len(nOctree.nodes[children_index_queue].items))
             nodes_to_split.append(children_index_queue)
-        else:
-            leaves=leaves+1
         
         children_index_queue += 1
         children_index += 1
         
-
     nOctree.nodes[nOctreeNodeIndex].items = np.empty(0,dtype='int64')
-    #print(nOctree.nodes[nOctreeNodeIndex+1].children)
-    return leaves
         
 @njit
 def build_octree(nOctree):
-    leaves=0
-    
-    #i=np.empty(0,dtype='int64')
-    
     i = np.array(list(range(0,len(nOctree.shapes))))
     nOctree.aabbs.append(AABB(nOctree.vertices))
-    
-    #nOctree.aabbs.append(AABB(nOctree.shapes[0].vertices))
-    #i = np.append(i,0)
-    
-    #for item_idx,aabb in enumerate(nOctree.aabb_shapes[1:]):
-    #    nOctree.aabbs[0].push_aabb(aabb)
-    #    i = np.append(i,item_idx+1)
-    
     nOctree.nodes.append(NOctreeNode(0,0,i))
     
     nodes_to_split = List()
@@ -106,10 +69,7 @@ def build_octree(nOctree):
     while len(nodes_to_split)>0:
         node_idx = nodes_to_split.pop(0)
         if(len(nOctree.nodes[node_idx].items) > nOctree.items_per_leaf and nOctree.nodes[node_idx].depth < nOctree.max_depth):
-            leaves=split(nOctree, nodes_to_split, node_idx,leaves)
-        else:
-            leaves=leaves+1
-    print(leaves)
+            split(nOctree, nodes_to_split, node_idx)
 
 @njit            
 def search_p(nodes,shapes,aabbs,point,type_mesh,index=0):
@@ -154,7 +114,6 @@ def search_p(nodes,shapes,aabbs,point,type_mesh,index=0):
             return search_p(nodes, shapes, aabbs, point,type_mesh,nodes_child_index)
         else:
             if type_mesh == 'Trimesh':
-                print('Prova')
                 for i in nodes[nodes_child_index].items:
                     if shapes[i].triangle_contains_point(point):
                         return True,i
@@ -198,9 +157,22 @@ def intersects_ray(nodes, shapes, aabbs, r_origin, r_dir, type_mesh):
                     if(len(child.items) == 0):
                         q.append(c)
                     else:
-                        for i in child.items:
-                            if(shapes[i].ray_interesects_triangle(r_origin, r_dir)):
-                                shapes_hit.add(i)
+                        if type_mesh == 'Trimesh':
+                            for i in child.items:
+                                if(shapes[i].ray_interesects_triangle(r_origin, r_dir)):
+                                    shapes_hit.add(i)
+                        elif type_mesh == 'Quadmesh':
+                            for i in child.items:
+                                if(shapes[i].ray_interesects_quad(r_origin, r_dir)):
+                                    shapes_hit.add(i)
+                        elif type_mesh == 'Hexmesh':
+                            for i in child.items:
+                                if(shapes[i].ray_interesects_hex(r_origin, r_dir)):
+                                    shapes_hit.add(i)
+                        elif type_mesh == 'Tetmesh':
+                            for i in child.items:
+                                if(shapes[i].ray_interesects_tet(r_origin, r_dir)):
+                                    shapes_hit.add(i)
     if(len(shapes_hit) == 0):
         return False,shapes_hit
     return True,shapes_hit
