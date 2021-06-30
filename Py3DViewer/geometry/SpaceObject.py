@@ -1,22 +1,24 @@
 import numpy as np
-from .AABB import AABB
-from numba import float64,njit,jit
+from numba import float64, njit
 from numba.experimental import jitclass
 import math
 
+#Basic method to calculate the distance between two points (Not used)
 @njit
 def distance_between_points(p1,p2):
-        d = math.sqrt(pow((p2[0] - p1[0]),2) + pow((p2[1] - p1[1]),2) + pow((p2[2] - p1[2]),2))
+        d = math.sqrt(pow((p2[0] - p1[0]), 2) + pow((p2[1] - p1[1]), 2) + pow((p2[2] - p1[2]), 2))
         return d
 
 spec = [('vertices', float64[:,:])]
 
+
+#Generic class that represents every object in the space (points, triangles, quad, tet, etc)
 @jitclass(spec)
 class SpaceObject:
     def __init__(self, vertices):
         self.vertices = vertices
 
-        
+    #Method to get the closest point to another one (Not used)
     @staticmethod
     def closest_point(vert,p):
         d = np.zeros(len(vert))
@@ -24,37 +26,43 @@ class SpaceObject:
         i = 0
         for v in vert:
             d[i] = distance_between_points(vert[p],v)
-            if m != p and i!=p:
+            if m != p and i != p:
                 if d[i] < d[m]:
                     m = i
-            elif m == p and i!=p:
+            elif m == p and i != p:
                 m = i
-            i = i+1
+            i = i + 1
         return m
     
-
+    
+    #Method to find triangle area. First we do the cross product of two vectors with same origin obtaining their orthogonal 
+    #vector. Then we can get its magnitude getting the area of parallelogram and divide by 2 to get the triangle area. (Not 
+    #used)
     @staticmethod
-    def magnitude_triangle(a,b,c):
+    def triangle_area(a, b, c):
         mag = 0
-        ab = b-a
-        ac = c-a
-        abac = np.cross(ab,ac)
+        ab = b - a
+        ac = c - a
+        abac = np.cross(ab, ac)
         for element in abac:
-            mag=mag+pow(element, 2)
+            mag = mag + pow(element, 2)
         mag=math.sqrt(mag)
-        return mag    
+        return mag / 2
         
         
+    #Method to check if all vertices are different in order to find a point inside a polygon or solid
     def all_vertices_are_different(self):
         for i,v in enumerate(self.vertices):
             for vert in self.vertices[i+1:]:
-                if np.array_equal(vert,v):
+                if np.array_equal(vert, v):
                     return False
         return True
     
+    
+    #Method to check if a point is inside a segment. First we check if the point is collinear and then we check the coordinates
     @staticmethod
-    def segment_contains_point(point,a,b):
-        m = np.zeros((3,3))
+    def segment_contains_point(point, a, b):
+        m = np.zeros((3, 3))
         m[0] = a
         m[1] = b
         m[2] = point
@@ -65,7 +73,14 @@ class SpaceObject:
         or (point[2] > min(a[2], b[2]) and point[2] < max(a[2], b[2]))):
             return True
         return False
-        
+
+    
+    #Method to check if a point is inside a triangle calculating for every edge the determinant of:
+    # ax ay 1
+    # bx by 1
+    # px py 1
+    # a and b: the two vertices of the edge; p: the point we want to know the position relative to the edge
+    # If the point is on the left or on the right for every edge we know the point is inside the triangle.
     @staticmethod
     def triangle_contains_point2D (pt, v1, v2, v3):
         
@@ -77,7 +92,12 @@ class SpaceObject:
             return True
         else:
             return False
-        
+    
+    
+    #Method to check if a triangle in a space contains a point.
+    #To make less operations we check if the point lies on the same position of the 3 vertices or lies on a segment.
+    #Finally we check the projection of the triangle for three couple of dimensions. The point lies inside the triangle
+    #if it lies in every 2D projection of the triangle.
     def triangle_contains_point(self, point):
         if len(self.vertices) == 3:
             if self.all_vertices_are_different():
@@ -85,7 +105,7 @@ class SpaceObject:
                 b = self.vertices[1]
                 c = self.vertices[2]
                 
-                if np.array_equal(point, a) or np.array_equal(point, b) or np.array_equal(point,c):
+                if np.array_equal(point, a) or np.array_equal(point, b) or np.array_equal(point, c):
                     return True;
                 
                 if(self.segment_contains_point(point, a, b) or
@@ -93,10 +113,10 @@ class SpaceObject:
                    self.segment_contains_point(point, c, a)):
                     return True;
                 
-                p  = np.array([point[1], point[2]],dtype='float64')
-                t0 = np.array([a[1], a[2]],dtype='float64')
-                t1 = np.array([b[1], b[2]],dtype='float64')
-                t2 = np.array([c[1], c[2]],dtype='float64')
+                p  = np.array([point[1], point[2]], dtype = 'float64')
+                t0 = np.array([a[1], a[2]], dtype = 'float64')
+                t1 = np.array([b[1], b[2]], dtype = 'float64')
+                t2 = np.array([c[1], c[2]], dtype = 'float64')
                 
                 if(self.triangle_contains_point2D(p, t0, t1, t2) == False):
                     return False;
@@ -118,7 +138,9 @@ class SpaceObject:
                     return False;
                 
                 return True
-                
+        
+        
+    #We split the quad in two triangles and check in both triangles.
     def quad_contains_point(self, point):
         if len(self.vertices) == 4:
             if self.all_vertices_are_different():
@@ -128,7 +150,7 @@ class SpaceObject:
                 c = self.vertices[2]
                 d = self.vertices[3]
                 
-                new_vertices = np.zeros((3,3),dtype='float64')
+                new_vertices = np.zeros((3, 3), dtype = 'float64')
                 new_vertices[0] = a
                 new_vertices[1] = b
                 new_vertices[2] = d
@@ -152,13 +174,21 @@ class SpaceObject:
             else:
                 print('Due o piu vertici sono nella stessa posizione')
     
+    
+    #Method to check if a point is in on the same side of the remaining vertex.
+    #We calculate the normal with a as origin point and we do the dot product between the normal and 'ad' and 'ap' to find 
+    #if the sign of the dot products is the same. If the dot point between the normal and ap is 0 the point lies on the plane.
     @staticmethod
     def same_side(a, b, c, d, point):
         normal = np.cross(b - a, c - a)
         dot_d = np.dot(normal, d - a)
         dot_point = np.dot(normal, point - a)
         return np.sign(dot_d) == np.sign(dot_point) or dot_point == 0
-                
+       
+        
+    #Method to check if a point is inside a tetrahedron.
+    #We split the tetrahedron in 4 triangles and for every triangle we check if the point lies on the same side of the 
+    #remaining vertex
     def tet_contains_point(self, point):
         v1 = self.vertices[0]
         v2 = self.vertices[1]
@@ -169,6 +199,9 @@ class SpaceObject:
                 and self.same_side(v3, v4, v1, v2, point)
                 and self.same_side(v4, v1, v2, v3, point))
     
+    
+    #Method to check if a point is inside a hexahedron.
+    #We split the hexahedron in 5 tetrahedron, and check if the point lies in one of them.
     def hex_contains_point(self, point):
         if len(self.vertices) == 8:
             if self.all_vertices_are_different():
@@ -181,7 +214,7 @@ class SpaceObject:
                 g = self.vertices[6]
                 h = self.vertices[7]
                 
-                new_vertices = np.zeros((4,3),dtype='float64')
+                new_vertices = np.zeros((4, 3),dtype='float64')
                 new_vertices[0] = a
                 new_vertices[1] = b
                 new_vertices[2] = c
@@ -241,6 +274,11 @@ class SpaceObject:
                 print('Due o piu vertici sono nella stessa posizione')
 
 
+    #Möller–Trumbore intersection algorithm to check if a ray intersects a triangle
+    #We calculate the determinant, if it's close to 0 the ray is parallel to the triangle.
+    #Then we calculate the barycentric coordinates of the point on the triangle and check if they are valid.
+    #t is the distance from the ray origin to the point, if it's positive the ray hit the triangle, otherwise the direction is 
+    #opposite.
     def ray_interesects_triangle(self, r_origin, r_dir):
         a = self.vertices[0]
         b = self.vertices[1]
@@ -256,7 +294,7 @@ class SpaceObject:
         if(abs(det) < EPSILON):
             return False
     
-        invDet = 1.0/det
+        invDet = 1.0 / det
         t = r_origin - a
         u = np.dot(t, p) * invDet
         if(u < 0.0 or u > 1.0):
@@ -274,15 +312,17 @@ class SpaceObject:
             return True
         else:
             return False
-        
-        
+     
+    
+    #Method to check if a ray intersects a quad.
+    #We split the quad in two triangles and check if the ray hit one of the triangles
     def ray_interesects_quad(self, r_origin, r_dir):
         a = self.vertices[0]
         b = self.vertices[1]
         c = self.vertices[2]
         d = self.vertices[3]
         
-        new_vertices = np.zeros((3,3),dtype='float64')
+        new_vertices = np.zeros((3, 3), dtype = 'float64')
         new_vertices[0] = a
         new_vertices[1] = b
         new_vertices[2] = d
@@ -305,13 +345,16 @@ class SpaceObject:
         
         return tri
     
+    
+    #Method to check if a ray intersects a tet.
+    #We check if ray intersects one of the faces
     def ray_interesects_tet(self, r_origin, r_dir):
         a = self.vertices[0]
         b = self.vertices[1]
         c = self.vertices[2]
         d = self.vertices[3]
         
-        new_vertices = np.zeros((3,3),dtype='float64')
+        new_vertices = np.zeros((3, 3), dtype = 'float64')
         new_vertices[0] = a
         new_vertices[1] = b
         new_vertices[2] = c
@@ -357,6 +400,8 @@ class SpaceObject:
         return tri
     
     
+    #Method to check if a ray intersects a hex.
+    #We check if ray intersects one of the faces
     def ray_interesects_hex(self, r_origin, r_dir):
         a = self.vertices[0]
         b = self.vertices[1]
@@ -367,7 +412,7 @@ class SpaceObject:
         g = self.vertices[6]
         h = self.vertices[7]
         
-        new_vertices = np.zeros((4,3),dtype='float64')
+        new_vertices = np.zeros((4, 3), dtype = 'float64')
         new_vertices[0] = a
         new_vertices[1] = b
         new_vertices[2] = c

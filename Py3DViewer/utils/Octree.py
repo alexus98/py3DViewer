@@ -2,10 +2,15 @@ import numpy as np
 from numba import njit
 from ..geometry import AABB
 from .NOctree import NOctree
+from numba.types import int64
 from .NOctreeNode import NOctreeNode
 from numba.typed import List
-from ..structures import Trimesh, Quadmesh, Tetmesh, Hexmesh
 
+
+#Method to split a node in 8 children.
+#We split the AABB of the node in 8 octants and assign all the items of the father to the nodes that intersect them.
+#Then we add the node to the list of octree nodes, assign the children index of the list to the list of children of the father.
+#If the he numbers of items in the node is higher than the max number of items per leaf and the depth is lower than the max #depth we add it to the list of nodes to split.
 @njit
 def split(nOctree, nodes_to_split, nOctreeNodeIndex):
     aabbNode = nOctree.aabbs[nOctreeNodeIndex]
@@ -39,11 +44,10 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex):
 
     for aabb in nOctree.aabbs[children_index_queue:len(nOctree.aabbs)]:
 
-        i=np.empty(0,dtype='int64')
+        i = List()
         for item in node.items:
             if(aabb.intersects_box(nOctree.aabb_shapes[item])):
-                i = np.append(i,item)
-                
+                i.append(item)
         nOctree.nodes.append(NOctreeNode(nOctreeNodeIndex,depth,i))
         nOctree.nodes[nOctreeNodeIndex].children[children_index]=children_index_queue
         
@@ -55,11 +59,18 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex):
         children_index_queue += 1
         children_index += 1
         
-    nOctree.nodes[nOctreeNodeIndex].items = np.empty(0,dtype='int64')
-        
+    nOctree.nodes[nOctreeNodeIndex].items = List.empty_list(int64)
+
+    
+#Method that build the octree given a list of shapes.
+#We initalize the list of items indices and initialize the root and its AABB
+#We add the root to the list of nodes to split and if the numbers of items in the node is higher than the max number of items 
+#per leaf and the depth is lower than the max depth we split the node in 8 children.
+#The same method is applied to all the nodes added to the list of nodes to split.
 @njit
 def build_octree(nOctree):
-    i = np.array(list(range(0,len(nOctree.shapes))))
+    #i = np.array(list(range(0,len(nOctree.shapes))))
+    i = List(range(0,len(nOctree.shapes)))
     nOctree.aabbs.append(AABB(nOctree.vertices))
     nOctree.nodes.append(NOctreeNode(0,0,i))
     
@@ -71,6 +82,10 @@ def build_octree(nOctree):
         if(len(nOctree.nodes[node_idx].items) > nOctree.items_per_leaf and nOctree.nodes[node_idx].depth < nOctree.max_depth):
             split(nOctree, nodes_to_split, node_idx)
 
+            
+#Method to search a point inside a face of the mesh represented as an Octree.
+#We check if the point lies inside the father's AABB, then we find the first octant that contains the point and recursevly it #goes deep down to find a leave that may contain the point. If the leave contain the point we check every item inside
+#and if an item contains the point the method returns a tuple with True and the item's index otherwise False and -1.
 @njit            
 def search_p(nodes,shapes,aabbs,point,type_mesh,index=0):
         
@@ -136,6 +151,8 @@ def search_p(nodes,shapes,aabbs,point,type_mesh,index=0):
             print('Dentro l aabb')
             return False,-1
 
+#Method to get the items intersected by a ray.
+#We check if the ray intersects the AABB and if true we add the node to the queue of nodes and check which octants it #intersects. If the node intersected is a leave we add it to the queue. If the node is not a leave we add every item #intersected by the ray to a set
 @njit
 def intersects_ray(nodes, shapes, aabbs, r_origin, r_dir, type_mesh):
     shapes_hit = set()
@@ -177,7 +194,7 @@ def intersects_ray(nodes, shapes, aabbs, r_origin, r_dir, type_mesh):
         return False,shapes_hit
     return True,shapes_hit
 
-        
+
 class Octree:
     def __init__(self, items_per_leaf, max_depth, shapes, vertices):
         self.n = NOctree(items_per_leaf, max_depth, shapes, vertices)
