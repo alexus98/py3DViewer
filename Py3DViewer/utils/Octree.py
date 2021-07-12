@@ -69,17 +69,17 @@ def split(nOctree, nodes_to_split, nOctreeNodeIndex):
 #The same method is applied to all the nodes added to the list of nodes to split.
 @njit
 def build_octree(nOctree):
-    #i = np.array(list(range(0,len(nOctree.shapes))))
     i = List(range(0,len(nOctree.shapes)))
     nOctree.aabbs.append(AABB(nOctree.vertices))
     nOctree.nodes.append(NOctreeNode(0,0,i))
     
-    nodes_to_split = List()
-    nodes_to_split.append(0)
+    if(len(nOctree.nodes[0].items) > nOctree.items_per_leaf and nOctree.nodes[0].depth < nOctree.max_depth):
     
-    while len(nodes_to_split)>0:
-        node_idx = nodes_to_split.pop(0)
-        if(len(nOctree.nodes[node_idx].items) > nOctree.items_per_leaf and nOctree.nodes[node_idx].depth < nOctree.max_depth):
+        nodes_to_split = List()
+        nodes_to_split.append(0)
+    
+        while len(nodes_to_split)>0:
+            node_idx = nodes_to_split.pop(0)
             split(nOctree, nodes_to_split, node_idx)
 
             

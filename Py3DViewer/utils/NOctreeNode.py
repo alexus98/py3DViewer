@@ -18,4 +18,3 @@ class NOctreeNode:
         self.depth = depth
         self.items = items
         self.children = np.zeros(8, dtype = int64)
-    

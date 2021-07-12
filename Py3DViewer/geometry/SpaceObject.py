@@ -3,11 +3,6 @@ from numba import float64, njit
 from numba.experimental import jitclass
 import math
 
-#Basic method to calculate the distance between two points (Not used)
-@njit
-def distance_between_points(p1,p2):
-        d = math.sqrt(pow((p2[0] - p1[0]), 2) + pow((p2[1] - p1[1]), 2) + pow((p2[2] - p1[2]), 2))
-        return d
 
 spec = [('vertices', float64[:,:])]
 
@@ -17,38 +12,7 @@ spec = [('vertices', float64[:,:])]
 class SpaceObject:
     def __init__(self, vertices):
         self.vertices = vertices
-
-    #Method to get the closest point to another one (Not used)
-    @staticmethod
-    def closest_point(vert,p):
-        d = np.zeros(len(vert))
-        m = p
-        i = 0
-        for v in vert:
-            d[i] = distance_between_points(vert[p],v)
-            if m != p and i != p:
-                if d[i] < d[m]:
-                    m = i
-            elif m == p and i != p:
-                m = i
-            i = i + 1
-        return m
     
-    
-    #Method to find triangle area. First we do the cross product of two vectors with same origin obtaining their orthogonal 
-    #vector. Then we can get its magnitude getting the area of parallelogram and divide by 2 to get the triangle area. (Not 
-    #used)
-    @staticmethod
-    def triangle_area(a, b, c):
-        mag = 0
-        ab = b - a
-        ac = c - a
-        abac = np.cross(ab, ac)
-        for element in abac:
-            mag = mag + pow(element, 2)
-        mag=math.sqrt(mag)
-        return mag / 2
-        
         
     #Method to check if all vertices are different in order to find a point inside a polygon or solid
     def all_vertices_are_different(self):
@@ -58,22 +22,6 @@ class SpaceObject:
                     return False
         return True
     
-    
-    #Method to check if a point is inside a segment. First we check if the point is collinear and then we check the coordinates
-    @staticmethod
-    def segment_contains_point(point, a, b):
-        m = np.zeros((3, 3))
-        m[0] = a
-        m[1] = b
-        m[2] = point
-        if not np.linalg.matrix_rank(m) <= 1:
-            return False
-        if((point[0] > min(a[0], b[0]) and point[0] < max(a[0], b[0]))
-        or (point[1] > min(a[1], b[1]) and point[1] < max(a[1], b[1]))
-        or (point[2] > min(a[2], b[2]) and point[2] < max(a[2], b[2]))):
-            return True
-        return False
-
     
     #Method to check if a point is inside a triangle calculating for every edge the determinant of:
     # ax ay 1
@@ -95,8 +43,8 @@ class SpaceObject:
     
     
     #Method to check if a triangle in a space contains a point.
-    #To make less operations we check if the point lies on the same position of the 3 vertices or lies on a segment.
-    #Finally we check the projection of the triangle for three couple of dimensions. The point lies inside the triangle
+    #To make less operations we check if the point lies on the same position of the 3 vertices or lies.
+    #Then we check the projection of the triangle for three couple of dimensions. The point lies inside the triangle
     #if it lies in every 2D projection of the triangle.
     def triangle_contains_point(self, point):
         if len(self.vertices) == 3:
@@ -106,11 +54,6 @@ class SpaceObject:
                 c = self.vertices[2]
                 
                 if np.array_equal(point, a) or np.array_equal(point, b) or np.array_equal(point, c):
-                    return True;
-                
-                if(self.segment_contains_point(point, a, b) or
-                   self.segment_contains_point(point, b, c) or
-                   self.segment_contains_point(point, c, a)):
                     return True;
                 
                 p  = np.array([point[1], point[2]], dtype = 'float64')

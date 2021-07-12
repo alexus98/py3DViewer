@@ -66,20 +66,6 @@ class AABB(object):
         return True
     
     
-    #Method to get new min,max and the other attributes of the AABB given another AABB(Not Used)
-    def push_aabb(self,aabb):
-        if (self.min is not None or self.max is not None):
-            self.min = np.minimum(self.min, aabb.min)
-            self.max = np.maximum(self.max, aabb.max)
-        else:
-            self.min = aabb.min
-            self.max = aabb.max
-            
-        self.delta_x = self.max[0] - self.min[0]
-        self.delta_y = self.max[1] - self.min[1]
-        self.delta_z = self.max[2] - self.min[2]
-    
-    
     #Method to get all vertices and edges of an AABB given min and max coordinates
     #starting_index: last used index of the edges list
     def get_vertices_and_edges(self, starting_index = 0):
@@ -121,13 +107,13 @@ class AABB(object):
     #Method to get all the vertices and edges given a list of AABBs
     @staticmethod
     def get_all_vertices_and_edges(aabbs):
-        vertices = List()
-        edges = List()
+        vertices = List() #vertices= np.empty([0,3])
+        edges = List()#edges = np.empty([0,2])
         i = 0
         for a in aabbs:
             v,e = a.get_vertices_and_edges(i)
-            vertices.append(v)
-            edges.append(e)
+            vertices.append(v) #vertices=np.append(vertices,v,axis=0)
+            edges.append(e) #edges=np.append(edges,e)
             i = i+8
         return vertices, edges
     
